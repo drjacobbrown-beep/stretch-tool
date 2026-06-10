@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Home Exercise Program Builder</title>
+<script src="exercises.js"></script>
+<script src="illustrations.js"></script>
+<style>
+  :root{
+    --bg:#eef1f5; --panel:#ffffff; --ink:#1b2430; --muted:#697586;
+    --line:#e4e9f0; --line-soft:#eef2f7;
+    --brand:#2563eb; --brand-dark:#1d4ed8; --brand-soft:#eef4ff;
+    --stretch:#0f766e; --strengthening:#b45309; --mobility:#6d28d9;
+    --radius:12px; --shadow:0 1px 2px rgba(16,24,40,.04),0 4px 14px rgba(16,24,40,.06);
+    --shadow-sm:0 1px 2px rgba(16,24,40,.06);
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    background:var(--bg);color:var(--ink);font-size:14px;line-height:1.45;
+    -webkit-font-smoothing:antialiased;}
+
+  /* ---------- App chrome ---------- */
+  .topbar{background:var(--panel);border-bottom:1px solid var(--line);padding:12px 24px;
+    display:flex;align-items:center;gap:18px;flex-wrap:wrap;position:sticky;top:0;z-index:20;
+    box-shadow:0 1px 0 rgba(16,24,40,.02);}
+  .topbar .brand-mark{display:flex;align-items:center;gap:11px;}
+  .topbar .logo-img{height:40px;width:auto;max-width:150px;display:block;object-fit:contain;}
+  .topbar .logo{width:34px;height:34px;border-radius:9px;background:linear-gradient(135deg,#2563eb,#1d4ed8);
+    color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:17px;flex:none;
+    box-shadow:0 2px 6px rgba(37,99,235,.35);}
+  .topbar h1{font-size:16px;margin:0;font-weight:700;letter-spacing:-.01em;}
+  .topbar .sub{color:var(--muted);font-size:12px;margin-top:1px;}
+  .topbar .spacer{flex:1;}
+  .field{display:flex;flex-direction:column;gap:3px;}
+  .field label{font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:600;}
+  .field input{border:1px solid var(--line);border-radius:8px;padding:7px 10px;font-size:13px;min-width:130px;
+    background:#fbfcfe;transition:border-color .12s,box-shadow .12s;}
+  .field input:focus{outline:0;border-color:var(--brand);box-shadow:0 0 0 3px var(--brand-soft);background:#fff;}
+  .btn{border:0;border-radius:9px;padding:9px 17px;font-size:13px;font-weight:600;cursor:pointer;
+    transition:background .12s,box-shadow .12s,transform .06s;}
+  .btn:active{transform:translateY(1px);}
+  .btn-primary{background:var(--brand);color:#fff;box-shadow:0 1px 2px rgba(37,99,235,.4);}
+  .btn-primary:hover{background:var(--brand-dark);box-shadow:0 3px 10px rgba(37,99,235,.35);}
+  .btn-ghost{background:#fff;color:var(--brand);border:1px solid var(--line);}
+  .btn-ghost:hover{background:var(--brand-soft);border-color:#c9d9fb;}
+
+  .layout{display:grid;grid-template-columns:200px 1fr 350px;gap:18px;padding:18px 24px;
+    max-width:1440px;margin:0 auto;align-items:start;}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);
+    overflow:hidden;}
+  .card h2{font-size:11px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);font-weight:700;
+    margin:0;padding:13px 16px;border-bottom:1px solid var(--line);background:#fbfcfe;}
+
+  /* ---------- Region rail ---------- */
+  .regions{position:sticky;top:72px;}
+  .region-btn{display:flex;flex-direction:column;width:100%;text-align:left;background:transparent;
+    border:0;border-bottom:1px solid var(--line-soft);padding:11px 16px;cursor:pointer;
+    transition:background .12s;position:relative;}
+  .region-btn:last-child{border-bottom:0;}
+  .region-btn:hover{background:#f7f9fc;}
+  .region-btn .r-label{font-weight:650;font-size:13.5px;color:var(--ink);}
+  .region-btn .r-sub{font-size:11px;color:var(--muted);margin-top:1px;}
+  .region-btn .r-count{font-size:10.5px;color:var(--muted);margin-top:3px;font-weight:500;}
+  .region-btn.active{background:var(--brand-soft);box-shadow:inset 3px 0 0 var(--brand);}
+  .region-btn.active .r-label{color:var(--brand-dark);}
+  .region-btn.active .r-count{color:var(--brand);font-weight:600;}
+
+  /* ---------- Exercise browser ---------- */
+  .browser-tools{display:flex;gap:8px;padding:14px 16px;border-bottom:1px solid var(--line);flex-wrap:wrap;align-items:center;}
+  .browser-tools input[type=search]{flex:1;min-width:150px;border:1px solid var(--line);border-radius:8px;padding:8px 12px;
+    background:#fbfcfe;transition:border-color .12s,box-shadow .12s;}
+  .browser-tools input[type=search]:focus{outline:0;border-color:var(--brand);box-shadow:0 0 0 3px var(--brand-soft);background:#fff;}
+  .chip{border:1px solid var(--line);background:#fff;border-radius:999px;padding:6px 13px;font-size:12px;
+    cursor:pointer;color:var(--muted);font-weight:600;transition:.12s;}
+  .chip:hover{border-color:#c9d9fb;color:var(--ink);}
+  .chip.on{background:var(--brand);color:#fff;border-color:var(--brand);box-shadow:0 1px 3px rgba(37,99,235,.35);}
+  .ex-list{padding:12px;display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+  .ex{border:1px solid var(--line);border-radius:10px;padding:12px 14px;cursor:pointer;position:relative;
+    transition:.12s;background:#fff;display:grid;grid-template-columns:56px 1fr;gap:11px;align-items:start;}
+  .ex:hover{border-color:#bcd0fa;box-shadow:var(--shadow);transform:translateY(-1px);}
+  .ex.added{border-color:var(--brand);background:var(--brand-soft);}
+  .ex-thumb{grid-column:1;grid-row:1 / span 3;}
+  .ex-svg{display:block;width:100%;height:auto;border:1px solid var(--line);border-radius:9px;background:#fff;}
+  .ex .ex-name{grid-column:2;font-weight:650;font-size:13px;padding-right:22px;line-height:1.32;}
+  .ex .ex-meta{grid-column:2;display:flex;gap:6px;margin-top:7px;flex-wrap:wrap;}
+  .ex .ex-dose{grid-column:2;}
+  .tag{font-size:9.5px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;padding:3px 8px;
+    border-radius:999px;color:#fff;line-height:1.3;}
+  .tag.stretch{background:var(--stretch);}
+  .tag.strengthening{background:var(--strengthening);}
+  .tag.mobility{background:var(--mobility);}
+  .tag.equip{background:#eef2f6;color:var(--muted);}
+  .ex .ex-dose{font-size:11px;color:var(--muted);margin-top:8px;line-height:1.4;}
+  .ex .add-mark{position:absolute;top:10px;right:11px;width:20px;height:20px;border-radius:50%;
+    display:flex;align-items:center;justify-content:center;font-size:14px;color:var(--brand);font-weight:700;
+    border:1px solid var(--line);background:#fff;transition:.12s;}
+  .ex:hover .add-mark{border-color:var(--brand);}
+  .ex.added .add-mark{background:var(--brand);color:#fff;border-color:var(--brand);}
+
+  /* ---------- Program panel ---------- */
+  .program{position:sticky;top:72px;display:flex;flex-direction:column;max-height:calc(100vh - 96px);}
+  .program-body{overflow:auto;padding:12px;flex:1;}
+  .empty{color:var(--muted);text-align:center;padding:40px 16px;font-size:13px;line-height:1.6;}
+  .empty .empty-icon{font-size:26px;display:block;margin-bottom:8px;opacity:.4;}
+  .sel{border:1px solid var(--line);border-radius:10px;padding:11px 12px;margin-bottom:10px;background:#fff;
+    box-shadow:var(--shadow-sm);}
+  .sel-top{display:flex;align-items:flex-start;gap:9px;}
+  .sel-thumb{flex:none;width:52px;}
+  .sel-thumb .ex-svg{width:52px;height:52px;}
+  .sel-photo{width:52px;height:52px;object-fit:cover;border-radius:9px;border:1px solid var(--line);display:block;}
+  .sel-head{flex:1;min-width:0;}
+  .sel-top .s-name{font-weight:650;font-size:13px;line-height:1.35;}
+  .sel-top .region-pill{font-size:10px;color:var(--muted);text-transform:capitalize;margin-top:3px;
+    display:inline-flex;align-items:center;gap:5px;}
+  .sel-top .region-pill .dot{width:6px;height:6px;border-radius:50%;display:inline-block;}
+  .dot.stretch{background:var(--stretch);} .dot.strengthening{background:var(--strengthening);} .dot.mobility{background:var(--mobility);}
+  .x{border:0;background:transparent;color:#9aa4b2;cursor:pointer;font-size:16px;line-height:1;padding:2px 5px;
+    border-radius:6px;transition:.12s;flex:none;}
+  .x:hover{background:#fde8e8;color:#b91c1c;}
+  .sel-fields{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:9px;}
+  .sel-fields input{border:1px solid var(--line);border-radius:7px;padding:6px 8px;font-size:11px;width:100%;
+    background:#fbfcfe;transition:border-color .12s,box-shadow .12s;}
+  .sel-fields input:focus{outline:0;border-color:var(--brand);box-shadow:0 0 0 2px var(--brand-soft);background:#fff;}
+  .sel-fields .full{grid-column:1/3;}
+  .sel-photo-row{display:flex;gap:6px;margin-top:8px;}
+  .photo-btn{flex:1;border:1px dashed var(--line);background:#fbfcfe;color:var(--muted);border-radius:7px;
+    padding:6px 8px;font-size:11px;font-weight:600;cursor:pointer;transition:.12s;}
+  .photo-btn:hover{border-color:var(--brand);color:var(--brand);background:var(--brand-soft);}
+  .photo-btn.remove{flex:0 0 auto;border-style:solid;}
+  .program-foot{border-top:1px solid var(--line);padding:14px 16px;display:flex;flex-direction:column;gap:10px;
+    background:#fbfcfe;}
+  .count-line{font-size:12px;color:var(--muted);font-weight:500;}
+  .program-foot .btn-primary{width:100%;padding:11px;}
+  textarea#globalNotes{width:100%;border:1px solid var(--line);border-radius:8px;padding:9px 10px;font-size:12px;
+    resize:vertical;min-height:56px;font-family:inherit;background:#fff;transition:border-color .12s,box-shadow .12s;}
+  textarea#globalNotes:focus{outline:0;border-color:var(--brand);box-shadow:0 0 0 3px var(--brand-soft);}
+
+  /* ================= PRINT / HANDOUT ================= */
+  #handout{display:none;}
+  @media screen{ #handout.preview{display:block;position:fixed;inset:0;background:#4b5057;z-index:100;overflow:auto;padding:30px 0;}
+    #handout.preview .sheet{margin:0 auto 26px;}
+    .preview-bar{position:fixed;top:0;left:0;right:0;background:#1b2430;color:#fff;padding:12px 22px;
+      display:flex;gap:14px;align-items:center;z-index:101;box-shadow:0 2px 12px rgba(0,0,0,.3);}
+    .preview-bar b{font-size:14px;}
+    #handout.preview{padding-top:86px;}
+  }
+  .sheet{
+    background:#fff;width:8.5in;min-height:11in;padding:0.55in 0.6in 0.5in;
+    box-shadow:0 6px 28px rgba(0,0,0,.32);color:#1a1a1a;
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    --hb:#1d4ed8; --hb-dark:#173da8;
+    --hstretch:#0f766e; --hstrength:#b45309; --hmobility:#6d28d9;
+  }
+
+  /* Header */
+  .ho-head{display:flex;justify-content:space-between;align-items:flex-start;
+    border-bottom:2.5px solid var(--hb);padding-bottom:13px;}
+  .ho-brand{display:flex;align-items:center;gap:12px;}
+  .ho-logo-img{max-height:62px;width:auto;max-width:300px;display:block;object-fit:contain;}
+  .ho-logo{width:42px;height:42px;border-radius:9px;background:var(--hb);color:#fff;flex:none;
+    display:flex;align-items:center;justify-content:center;font-weight:800;font-size:21px;letter-spacing:-.02em;}
+  .ho-clinic{font-size:20px;font-weight:800;color:var(--hb-dark);letter-spacing:-.015em;line-height:1.1;}
+  .ho-tag{font-size:11px;color:#5b6573;margin-top:2px;letter-spacing:.02em;}
+  .ho-title{text-align:right;padding-top:2px;}
+  .ho-title .t1{font-size:14px;font-weight:700;color:#1a1a1a;letter-spacing:-.01em;}
+  .ho-title .t2{font-size:10.5px;color:#5b6573;margin-top:2px;line-height:1.4;}
+
+  /* Patient info form row */
+  .ho-patient{display:flex;gap:0;margin:14px 0 0;border:1px solid #d6dde6;border-radius:9px;overflow:hidden;}
+  .ho-patient .pf{flex:1;padding:9px 14px;border-right:1px solid #e6ebf1;}
+  .ho-patient .pf:last-child{border-right:0;}
+  .ho-patient .pf .lbl{font-size:8.5px;text-transform:uppercase;letter-spacing:.08em;color:#7a8493;font-weight:700;}
+  .ho-patient .pf .val{font-size:13px;color:#1a1a1a;margin-top:3px;font-weight:600;min-height:17px;border-bottom:1px solid transparent;}
+  .ho-patient .pf .val.blank{border-bottom:1px dotted #b9c2cd;color:transparent;}
+
+  /* Safety / instruction banner */
+  .ho-instructions{background:#f1f6fd;border:1px solid #d4e2f8;border-left:3px solid var(--hb);
+    border-radius:8px;padding:9px 13px;font-size:11px;margin:13px 0 16px;color:#33424f;line-height:1.5;}
+  .ho-instructions .ho-i-title{font-weight:700;color:#1a2a3a;font-size:11px;display:block;margin-bottom:2px;}
+  .ho-instructions b{color:#0a1a2a;}
+
+  .ho-section-label{font-size:10px;text-transform:uppercase;letter-spacing:.09em;color:#7a8493;font-weight:700;
+    margin:0 0 9px;display:flex;align-items:center;gap:8px;}
+  .ho-section-label::after{content:"";flex:1;height:1px;background:#e3e9f0;}
+
+  /* Exercise card */
+  .ho-ex{border:1px solid #d8dee6;border-radius:9px;padding:0;margin-bottom:11px;
+    page-break-inside:avoid;break-inside:avoid;overflow:hidden;background:#fff;}
+  .ho-ex-head{display:flex;align-items:center;gap:10px;padding:9px 13px;background:#f7f9fc;border-bottom:1px solid #e6ebf1;}
+  .ho-ex .num{background:var(--hb);color:#fff;width:24px;height:24px;border-radius:7px;flex:none;
+    display:inline-flex;align-items:center;justify-content:center;font-size:12.5px;font-weight:700;}
+  .ho-ex h3{margin:0;font-size:13.5px;font-weight:700;flex:1;letter-spacing:-.01em;line-height:1.25;}
+  .ho-ex-body{padding:11px 13px 11px;display:flex;gap:14px;align-items:flex-start;}
+  .ho-figure{flex:none;}
+  .ho-figure .ex-strip{height:120px;width:auto;display:block;background:#fff;}
+  .ho-figure img{width:108px;height:108px;display:block;border:1px solid #e3e9f0;border-radius:9px;background:#fff;object-fit:cover;}
+  .ho-ex-content{flex:1;min-width:0;}
+  .ho-tags{display:flex;gap:6px;flex-wrap:wrap;align-items:center;}
+  /* Print-safe type tag: colored bg + bordered + always-visible text */
+  .ho-tag-pill{font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.05em;
+    padding:3px 9px;border-radius:999px;line-height:1.3;border:1px solid;}
+  .ho-tag-pill.stretch{background:#e6f4f1;color:#0c5a54;border-color:#9ad3cb;}
+  .ho-tag-pill.strengthening{background:#fdf0e1;color:#8a4208;border-color:#e6bd8a;}
+  .ho-tag-pill.mobility{background:#f1ebfb;color:#54209c;border-color:#c5acec;}
+  .ho-tag-pill.equip{background:#eef2f6;color:#56616e;border-color:#d4dbe3;}
+  .ho-ex ol{margin:0;padding:0 0 0 4px;font-size:11.5px;list-style:none;counter-reset:step;line-height:1.45;}
+  .ho-ex ol li{margin-bottom:4px;padding-left:21px;position:relative;counter-increment:step;}
+  .ho-ex ol li::before{content:counter(step);position:absolute;left:0;top:0;width:15px;height:15px;
+    border-radius:50%;background:#e8eef7;color:#3a5a9a;font-size:9px;font-weight:700;
+    display:flex;align-items:center;justify-content:center;}
+
+  /* Dosage strip */
+  .ho-dose{display:flex;gap:0;margin-top:11px;border:1px solid #e3e9f0;border-radius:7px;overflow:hidden;background:#fbfcfe;}
+  .ho-dose .d{flex:1;padding:6px 12px;border-right:1px solid #e6ebf1;}
+  .ho-dose .d:last-child{border-right:0;}
+  .ho-dose .d .dl{font-size:8px;text-transform:uppercase;letter-spacing:.07em;color:#7a8493;font-weight:700;}
+  .ho-dose .d .dv{font-size:11.5px;color:#1a1a1a;font-weight:600;margin-top:1px;}
+
+  /* Tip + completion tracker row */
+  .ho-ex-foot{display:flex;gap:10px;align-items:flex-start;margin-top:9px;}
+  .ho-tip{flex:1;font-size:10.5px;color:#6b4708;background:#fff8ec;border:1px solid #f2e2c0;
+    border-radius:6px;padding:6px 10px;line-height:1.45;}
+  .ho-tip b{color:#5a3b00;}
+  .ho-track{flex:none;display:flex;flex-direction:column;align-items:flex-end;gap:4px;}
+  .ho-track .tk-lbl{font-size:8px;text-transform:uppercase;letter-spacing:.06em;color:#7a8493;font-weight:700;}
+  .ho-track .tk-boxes{display:flex;gap:4px;}
+  .ho-track .tk-boxes span{width:14px;height:14px;border:1.3px solid #b9c2cd;border-radius:3px;display:block;}
+
+  .ho-notes{background:#fbfcfe;border:1px solid #e3e9f0;border-radius:8px;padding:10px 13px;font-size:11px;
+    margin:4px 0 0;color:#33424f;line-height:1.5;}
+  .ho-notes .ho-i-title{font-weight:700;color:#1a2a3a;display:block;margin-bottom:3px;font-size:10px;
+    text-transform:uppercase;letter-spacing:.06em;color:#7a8493;}
+
+  .ho-foot{margin-top:16px;border-top:1px solid #e0e6ee;padding-top:9px;font-size:9px;color:#8a93a0;
+    display:flex;justify-content:space-between;align-items:center;gap:12px;line-height:1.4;}
+  .ho-foot .ho-foot-clinic{font-weight:600;color:#5b6573;}
+  .ho-foot .ho-foot-disc{flex:1;text-align:right;}
+
+  @media print{
+    @page{size:letter;margin:0;}
+    html,body{background:#fff;}
+    .topbar,.layout,.preview-bar{display:none !important;}
+    #handout,#handout.preview{display:block;position:static;background:#fff;padding:0;}
+    .sheet{box-shadow:none;width:auto;min-height:auto;margin:0;padding:0.5in 0.55in;}
+    .ho-ex,.ho-dose,.ho-patient,.ho-instructions,.ho-notes{
+      -webkit-print-color-adjust:exact;print-color-adjust:exact;}
+    .ho-ex,.ho-tag-pill,.ho-track .tk-boxes span,.ho-tip,.ho-dose,.ho-patient,.ho-instructions,.ho-notes,
+    .ho-figure,.ho-figure svg,.ho-ex-head{
+      -webkit-print-color-adjust:exact;print-color-adjust:exact;}
+  }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="brand-mark">
+    <img id="brandLogo" class="logo-img" src="logo.png" alt="Clinic logo" onerror="this.style.display='none'">
+    <div>
+      <h1>Home Exercise Program Builder</h1>
+      <div class="sub">Select a region &rarr; pick exercises &rarr; print a patient handout</div>
+    </div>
+  </div>
+  <div class="spacer"></div>
+  <div class="field"><label>Clinic name</label><input id="clinicName" placeholder="Your Clinic Name" value="Active Chiropractic of Cadillac"></div>
+  <div class="field"><label>Provider</label><input id="providerName" placeholder="Dr. Name, DC/PT" value="Jacob Brown, DC"></div>
+  <button class="btn btn-ghost" onclick="pickLogo()" title="Upload or change your clinic logo">Change logo</button>
+  <button class="btn btn-ghost" onclick="clearAll()">Clear</button>
+  <button class="btn btn-primary" onclick="openPreview()">Preview &amp; Print &rarr;</button>
+</div>
+
+<div class="layout">
+  <!-- Region rail -->
+  <div class="card regions" id="regionRail"></div>
+
+  <!-- Exercise browser -->
+  <div class="card">
+    <h2 id="browserTitle">Exercises</h2>
+    <div class="browser-tools">
+      <input type="search" id="search" placeholder="Search exercises..." oninput="renderExercises()">
+      <button class="chip on" data-type="all" onclick="setType(this)">All</button>
+      <button class="chip" data-type="stretch" onclick="setType(this)">Stretch</button>
+      <button class="chip" data-type="strengthening" onclick="setType(this)">Strengthen</button>
+      <button class="chip" data-type="mobility" onclick="setType(this)">Mobility</button>
+    </div>
+    <div class="ex-list" id="exList"></div>
+  </div>
+
+  <!-- Program -->
+  <div class="card program">
+    <h2>Selected Program</h2>
+    <div class="program-body" id="programBody">
+      <div class="empty"><span class="empty-icon">&#129496;</span>No exercises yet.<br>Click exercises to add them to the program.</div>
+    </div>
+    <div class="program-foot">
+      <textarea id="globalNotes" placeholder="Notes for the patient (e.g. perform daily, ice after, follow-up in 2 weeks)..."></textarea>
+      <div class="count-line" id="countLine">0 exercises selected</div>
+      <button class="btn btn-primary" onclick="openPreview()">Preview &amp; Print &rarr;</button>
+    </div>
+  </div>
+</div>
+
+<!-- Handout / print view -->
+<div id="handout"></div>
+<input type="file" id="photoInput" accept="image/*" style="display:none" onchange="onPhotoChosen(this)">
+<input type="file" id="logoInput" accept="image/*" style="display:none" onchange="onLogoChosen(this)">
+
+<script>
+const DATA = window.EXERCISE_DATA.map((e,i)=>({...e,id:'ex'+i}));
+const REGIONS = window.REGIONS;
+let activeRegion = REGIONS[0].id;
+let activeType = 'all';
+const program = []; // {id, dosage, frequency} overrides
+
+const $ = s=>document.querySelector(s);
+
+/* ---------- Region rail ---------- */
+function renderRegions(){
+  $('#regionRail').innerHTML = REGIONS.map(r=>{
+    const n = DATA.filter(e=>e.region===r.id).length;
+    const sel = program.filter(p=>DATA.find(e=>e.id===p.id).region===r.id).length;
+    return `<button class="region-btn ${r.id===activeRegion?'active':''}" onclick="selectRegion('${r.id}')">
+      <span class="r-label">${r.label}</span>
+      <span class="r-sub">${r.sub}</span>
+      <span class="r-count">${n} exercises${sel?` &middot; ${sel} selected`:''}</span>
+    </button>`;
+  }).join('');
+}
+function selectRegion(id){activeRegion=id;renderRegions();renderExercises();
+  $('#browserTitle').textContent = REGIONS.find(r=>r.id===id).label + ' Exercises';}
+
+/* ---------- Browser ---------- */
+function setType(btn){document.querySelectorAll('.chip').forEach(c=>c.classList.remove('on'));
+  btn.classList.add('on');activeType=btn.dataset.type;renderExercises();}
+
+function renderExercises(){
+  const q = $('#search').value.trim().toLowerCase();
+  const list = DATA.filter(e=>e.region===activeRegion)
+    .filter(e=>activeType==='all'||e.type===activeType)
+    .filter(e=>!q||e.name.toLowerCase().includes(q)||e.instructions.join(' ').toLowerCase().includes(q));
+  if(!list.length){$('#exList').innerHTML=`<div class="empty" style="grid-column:1/3">No matches.</div>`;return;}
+  $('#exList').innerHTML = list.map(e=>{
+    const added = program.some(p=>p.id===e.id);
+    return `<div class="ex ${added?'added':''}" onclick="toggle('${e.id}')">
+      <div class="add-mark">${added?'&#10003;':'+'}</div>
+      <div class="ex-thumb">${exerciseSVG(e,56,'thumb')}</div>
+      <div class="ex-name">${e.name}</div>
+      <div class="ex-meta">
+        <span class="tag ${e.type}">${e.type}</span>
+        ${e.equipment&&e.equipment!=='none'?`<span class="tag equip">${e.equipment}</span>`:''}
+      </div>
+      <div class="ex-dose">${e.dosage} &middot; ${e.frequency}</div>
+    </div>`;
+  }).join('');
+}
+
+/* ---------- Program ---------- */
+function toggle(id){
+  const i = program.findIndex(p=>p.id===id);
+  if(i>=0) program.splice(i,1);
+  else{const e=DATA.find(x=>x.id===id);program.push({id,dosage:e.dosage,frequency:e.frequency});}
+  renderAll();
+}
+function removeSel(id){const i=program.findIndex(p=>p.id===id);if(i>=0)program.splice(i,1);renderAll();}
+function updateField(id,field,val){const p=program.find(p=>p.id===id);if(p)p[field]=val;}
+
+/* ---------- custom photos (embedded as data URLs so they print) ---------- */
+let _photoTargetId = null;
+function pickPhoto(id){_photoTargetId=id;$('#photoInput').click();}
+function clearPhoto(id){const p=program.find(p=>p.id===id);if(p){delete p.image;renderAll();}}
+function onPhotoChosen(input){
+  const file = input.files && input.files[0];
+  if(!file||!_photoTargetId){input.value='';return;}
+  if(!/^image\//.test(file.type)){alert('Please choose an image file.');input.value='';return;}
+  const reader = new FileReader();
+  reader.onload = e=>{const p=program.find(p=>p.id===_photoTargetId);if(p)p.image=e.target.result;input.value='';renderAll();};
+  reader.readAsDataURL(file);
+}
+
+function renderProgram(){
+  if(!program.length){$('#programBody').innerHTML=`<div class="empty"><span class="empty-icon">&#129496;</span>No exercises yet.<br>Click exercises to add them to the program.</div>`;
+    $('#countLine').textContent='0 exercises selected';return;}
+  $('#programBody').innerHTML = program.map((p,idx)=>{
+    const e=DATA.find(x=>x.id===p.id);
+    const thumb = p.image
+      ? `<img src="${p.image}" alt="" class="sel-photo">`
+      : exerciseSVG(e,52,'thumb');
+    return `<div class="sel">
+      <div class="sel-top">
+        <div class="sel-thumb">${thumb}</div>
+        <div class="sel-head">
+          <div class="s-name">${idx+1}. ${e.name}</div>
+          <div class="region-pill"><span class="dot ${e.type}"></span>${e.region} &middot; ${e.type}</div>
+        </div>
+        <button class="x" title="Remove" onclick="removeSel('${e.id}')">&times;</button>
+      </div>
+      <div class="sel-fields">
+        <input value="${escapeAttr(p.dosage)}" placeholder="Dosage" oninput="updateField('${e.id}','dosage',this.value)">
+        <input value="${escapeAttr(p.frequency)}" placeholder="Frequency" oninput="updateField('${e.id}','frequency',this.value)">
+      </div>
+      <div class="sel-photo-row">
+        <button class="photo-btn" onclick="pickPhoto('${e.id}')">${p.image?'&#128247; Replace photo':'&#128247; Add your own photo'}</button>
+        ${p.image?`<button class="photo-btn remove" onclick="clearPhoto('${e.id}')">Use diagram</button>`:''}
+      </div>
+    </div>`;
+  }).join('');
+  const regions = new Set(program.map(p=>DATA.find(e=>e.id===p.id).region));
+  $('#countLine').textContent = `${program.length} exercise${program.length>1?'s':''} selected across ${regions.size} region${regions.size>1?'s':''}`;
+}
+function escapeAttr(s){return (s||'').replace(/"/g,'&quot;');}
+
+function renderAll(){renderRegions();renderExercises();renderProgram();}
+function clearAll(){if(program.length&&!confirm('Clear all selected exercises?'))return;program.length=0;renderAll();}
+
+/* ---------- Handout ---------- */
+function fmtDate(){const d=new Date();return d.toLocaleDateString(undefined,{year:'numeric',month:'long',day:'numeric'});}
+function buildHandout(){
+  const clinic = $('#clinicName').value||'Your Clinic';
+  const provider = $('#providerName').value;
+  const notes = $('#globalNotes').value.trim();
+  const initial = clinic.trim().charAt(0).toUpperCase() || '+';
+  const logo = getLogo();
+  const exHtml = program.map((p,idx)=>{
+    const e=DATA.find(x=>x.id===p.id);
+    return `<div class="ho-ex">
+      <div class="ho-ex-head">
+        <span class="num">${idx+1}</span>
+        <h3>${e.name}</h3>
+        <div class="ho-tags">
+          <span class="ho-tag-pill ${e.type}">${e.type}</span>
+          ${e.equipment&&e.equipment!=='none'?`<span class="ho-tag-pill equip">${e.equipment}</span>`:''}
+        </div>
+      </div>
+      <div class="ho-ex-body">
+        <div class="ho-figure">${p.image?`<img src="${p.image}" alt="">`:exerciseSVG(e,160,'strip')}</div>
+        <div class="ho-ex-content">
+          <ol>${e.instructions.map(s=>`<li>${s}</li>`).join('')}</ol>
+          <div class="ho-dose">
+            <div class="d"><div class="dl">Dosage</div><div class="dv">${p.dosage||'as advised'}</div></div>
+            <div class="d"><div class="dl">Frequency</div><div class="dv">${p.frequency||'as advised'}</div></div>
+          </div>
+          <div class="ho-ex-foot">
+            ${e.tips?`<div class="ho-tip"><b>Tip:</b> ${e.tips}</div>`:'<div class="ho-tip" style="visibility:hidden">&nbsp;</div>'}
+            <div class="ho-track">
+              <div class="tk-lbl">Days completed</div>
+              <div class="tk-boxes"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+  const regionCount = new Set(program.map(p=>DATA.find(e=>e.id===p.id).region)).size;
+  return `<div class="sheet">
+    <div class="ho-head">
+      <div class="ho-brand">
+        <img class="ho-logo-img" src="${logo}" alt="${escapeAttr(clinic)}" onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'ho-clinic',textContent:this.alt}))">
+      </div>
+      <div class="ho-title"><div class="t1">Home Exercise Program</div>
+        <div class="t2">${provider?provider+'<br>':''}${program.length} exercise${program.length>1?'s':''} &middot; ${regionCount} region${regionCount>1?'s':''}</div></div>
+    </div>
+    <div class="ho-patient">
+      <div class="pf"><div class="lbl">Patient name</div><div class="val blank">&nbsp;</div></div>
+      <div class="pf"><div class="lbl">Date issued</div><div class="val">${fmtDate()}</div></div>
+      <div class="pf"><div class="lbl">Review on</div><div class="val blank">&nbsp;</div></div>
+    </div>
+    <div class="ho-instructions">
+      <span class="ho-i-title">How to use this program</span>
+      Perform these exercises as prescribed. Move slowly and stay within a comfortable range. Mild muscle fatigue is normal &mdash;
+      <b>stop and contact your provider if you feel sharp pain, numbness, tingling, or dizziness.</b>
+    </div>
+    <div class="ho-section-label">Your exercises</div>
+    ${exHtml}
+    ${notes?`<div class="ho-notes"><span class="ho-i-title">Notes from your provider</span>${notes.replace(/\n/g,'<br>')}</div>`:''}
+    <div class="ho-foot">
+      <span class="ho-foot-clinic">${clinic}${provider?' &middot; '+provider:''}</span>
+      <span class="ho-foot-disc">This program is individualized for you and is not a substitute for professional medical advice.</span>
+    </div>
+  </div>`;
+}
+function openPreview(){
+  if(!program.length){alert('Add at least one exercise first.');return;}
+  $('#handout').innerHTML = `<div class="preview-bar">
+      <b>Print preview</b>
+      <span style="opacity:.7;font-size:12px">Use your browser's print dialog to print or "Save as PDF"</span>
+      <span style="flex:1"></span>
+      <button class="btn btn-primary" onclick="window.print()">Print / Save PDF</button>
+      <button class="btn btn-ghost" style="color:#fff;border-color:#fff" onclick="closePreview()">Close</button>
+    </div>` + buildHandout();
+  $('#handout').classList.add('preview');
+}
+function closePreview(){$('#handout').classList.remove('preview');$('#handout').innerHTML='';}
+
+/* ---------- clinic logo (embedded so it prints & travels) ---------- */
+function getLogo(){ try{ return localStorage.getItem('hep_logo') || 'logo.png'; }catch(e){ return 'logo.png'; } }
+function pickLogo(){ $('#logoInput').click(); }
+function onLogoChosen(input){
+  const f=input.files&&input.files[0];
+  if(!f||!/^image\//.test(f.type)){ if(f) alert('Please choose an image file (PNG, JPG, or SVG).'); input.value=''; return; }
+  const r=new FileReader();
+  r.onload=e=>{
+    try{ localStorage.setItem('hep_logo', e.target.result); }
+    catch(err){ alert('That image is a bit large to remember between visits, but it will still appear on this handout.'); }
+    const img=$('#brandLogo'); if(img){ img.src=e.target.result; img.style.display='block'; }
+    input.value='';
+  };
+  r.readAsDataURL(f);
+}
+
+/* ---------- remember clinic name, provider & logo between visits ---------- */
+try{
+  const sc=localStorage.getItem('hep_clinic'), sp=localStorage.getItem('hep_provider'), sl=localStorage.getItem('hep_logo');
+  if(sc!==null) $('#clinicName').value=sc;
+  if(sp!==null) $('#providerName').value=sp;
+  if(sl){ const img=$('#brandLogo'); if(img){ img.src=sl; img.style.display='block'; } }
+  $('#clinicName').addEventListener('input',e=>localStorage.setItem('hep_clinic',e.target.value));
+  $('#providerName').addEventListener('input',e=>localStorage.setItem('hep_provider',e.target.value));
+}catch(e){/* localStorage unavailable (e.g. private mode) — non-fatal */}
+
+/* ---------- init ---------- */
+renderAll();
+$('#browserTitle').textContent = REGIONS[0].label + ' Exercises';
+</script>
+</body>
+</html>
